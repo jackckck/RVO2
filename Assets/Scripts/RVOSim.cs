@@ -5,11 +5,12 @@ using RVO;
 
 public class RVOSim : MonoBehaviour
 {
+    public List<GameObject> Obstacles; //Timo
     public int NrOfMovingAgents;
     public int NrOfMovingAgents2;
     public int NrOfStaticAgents;
     public GameObject GoalObj;
-    public GameObject StartObj;
+    public GameObject StartObj; 
     public GameObject StartObj2;
     public GameObject GoalObj2;
     public GameObject MiddleObj;
@@ -90,6 +91,7 @@ public class RVOSim : MonoBehaviour
             Simulator.Instance.setTimeStep(0.25f);
             Simulator.Instance.setAgentDefaults(15.0f, 10, 5.0f, 5.0f, 1.0f, 1.0f, new RVO.Vector2(0.0f, 0.0f), priority, goalPosition); // Dasja
 
+            InitialiseObstacles(); //Timo
         }        
 
 
@@ -99,6 +101,23 @@ public class RVOSim : MonoBehaviour
         }
 
     }
+
+    //OPEN Timo
+    void InitialiseObstacles()
+    {
+        foreach (var parentObject in Obstacles) 
+        {
+            var obstacle = new List<RVO.Vector2>();
+            foreach (Transform child in parentObject.transform)
+            {
+                var pos = child.position;
+                obstacle.Add(ToRVO(pos));
+            }
+            Simulator.Instance.addObstacle(obstacle);
+        }
+        Simulator.Instance.processObstacles();
+    }
+    //CLOSE Timo
 
     RVO.Vector2 ToRVO(Vector3 v)
     {
