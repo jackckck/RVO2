@@ -74,6 +74,9 @@ namespace RVO
                 for (int agentNo = start_; agentNo < end_; ++agentNo)
                 {
                     Simulator.Instance.agents_[agentNo].computeNeighbors();
+                    //<Jack>
+                    Simulator.Instance.agents_[agentNo].computeIfStatic();
+                    //</Jack>
                     Simulator.Instance.agents_[agentNo].computeNewVelocity();
                 }
 
@@ -319,6 +322,13 @@ namespace RVO
 
             return globalTime_;
         }
+
+        //<Jack>
+        public bool isAgentStatic(int agentNo)
+        {
+            return agents_[agentNo].IsStatic();
+        }
+        //</Jack>
 
         /**
          * <summary>Returns the specified agent neighbor of the specified agent.
