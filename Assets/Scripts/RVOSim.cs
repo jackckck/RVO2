@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,15 @@ public class RVOSim : MonoBehaviour
     public GameObject MovingPrefab;
     public GameObject StaticPrefab2;
     public GameObject MovingPrebab2;
+    // agent default stats
+    private float defaultNeighbourDist = 15.0f;
+    private int defaultMaxNeighbours = 10;
+    private float defaultTimeHorizon = 5.0f;
+    private float defaultTimeHorizonObst = 5.0f;
+    private float defaultRadius = 1.0f;
+    private float defaultMaxSpeed = 1.0f;
+    private float defaultPersonalSpaceMultiplier = 1.0f;
+    private float defaultLettingThroughMultiplier = 1.0f;
     Vector3 goal1;
     Vector3 start1;
     Vector3 goal2;
@@ -29,6 +39,8 @@ public class RVOSim : MonoBehaviour
     Vector3[] goalPositions;
 
     bool[] agentsStaticity;
+
+   
 
     // Start is called before the first frame update
     void Start()
@@ -58,6 +70,7 @@ public class RVOSim : MonoBehaviour
             float priority; // Dasja
             RVO.Vector2 goalPosition; // Dasja
 
+            int agentGroupSize = 0;
 
             if (i < NrOfMovingAgents)
             {
@@ -66,14 +79,16 @@ public class RVOSim : MonoBehaviour
                 priority = 2.0f; // Dasja
                 goalPosition = ToRVO(goal1); // Dasja
                 isStatic = false;
+                agentGroupSize = NrOfMovingAgents;
             }
             else if (i < NrOfMovingAgents + NrOfMovingAgents2)
             {
-                spawnPos = start2;
-                goalPos = goal2;
+                spawnPos = goal1;
+                goalPos = start1;
                 priority = 2.0f; // Dasja
                 goalPosition = ToRVO(goal2); // Dasja
                 isStatic = false;
+                agentGroupSize = NrOfMovingAgents2;
             }
             else
             {
@@ -82,9 +97,17 @@ public class RVOSim : MonoBehaviour
                 priority = 1.0f; // Dasja
                 goalPosition = ToRVO(middle); // Dasja
                 isStatic = true;
+                agentGroupSize = NrOfStaticAgents;
             }
 
-            Vector3 displacement = new Vector3((float)ran.NextDouble() * 20 - 10, 0, (float)ran.NextDouble() * 20 - 10);
+            double spawnRadius = (double) (1.5f * ((float) Math.Sqrt(agentGroupSize * defaultRadius * defaultRadius)));
+            double theta = ran.NextDouble() * (2 * Math.PI);
+            double l = ran.NextDouble() * spawnRadius;
+
+            float xDisplacement = (float) (l * Math.Cos(theta));
+            float yDisplacement = (float) (l * Math.Sin(theta));
+
+            Vector3 displacement = new Vector3(xDisplacement, 0, yDisplacement);
             spawnPos += displacement;
             goalPos += displacement;
             spawnPositions[i] = spawnPos;
@@ -93,17 +116,19 @@ public class RVOSim : MonoBehaviour
             agentsStaticity[i] = isStatic;
 
             if (i < NrOfMovingAgents)
-                allAgents[i] = GameObject.Instantiate(StaticPrefab2, spawnPos, Quaternion.identity);
+                allAgents[i] = GameObject.Instantiate(MovingPrebab2, spawnPos, Quaternion.identity);
             else if (i < NrOfMovingAgents + NrOfMovingAgents2)
-                allAgents[i] = GameObject.Instantiate(StaticPrefab2, spawnPos, Quaternion.identity);
+                allAgents[i] = GameObject.Instantiate(MovingPrebab2, spawnPos, Quaternion.identity);
             else
                 allAgents[i] = GameObject.Instantiate(StaticPrefab, spawnPos, Quaternion.identity);
 
-            Simulator.Instance.setAgentDefaults(15.0f, 10, 5.0f, 5.0f, 1.0f, 1.0f, new RVO.Vector2(0.0f, 0.0f), priority, goalPosition); // Dasja
+            Simulator.Instance.setAgentDefaults(defaultNeighbourDist, defaultMaxNeighbours, defaultTimeHorizon, defaultTimeHorizonObst,
+                                                defaultRadius, defaultMaxSpeed, new RVO.Vector2(0.0f, 0.0f), priority, goalPosition,
+                                                defaultPersonalSpaceMultiplier, defaultLettingThroughMultiplier); // Dasja
             Simulator.Instance.setTimeStep(0.25f);
             Simulator.Instance.addAgent(ToRVO(allAgents[i].transform.position));
-        }        
 
+        }
     }
 
     RVO.Vector2 ToRVO(Vector3 v)
@@ -119,7 +144,7 @@ public class RVOSim : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        for (int i = 0; i < Simulator.Instance.getNumAgents(); i++)
+        for (int i = 0; i < nrOfAgents; i++)
         {
             var agentPos = Simulator.Instance.getAgentPosition(i);
             RVO.Vector2 goalPos = ToRVO(goalPositions[i]);
@@ -128,6 +153,10 @@ public class RVOSim : MonoBehaviour
 
             UpdateAgentSkin(i);
 
+            /*if (Simulator.Instance.isAgentStatic(i) && absDistToGoal < 10)
+            {
+                goalVel = new RVO.Vector2(0, 0);
+            }*/
             if (absDistToGoal > 1) {
                 goalVel = RVOMath.normalize(goalVel);
             }

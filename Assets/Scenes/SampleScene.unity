@@ -263,9 +263,10 @@ MonoBehaviour:
   StartObj2: {fileID: 598086445}
   GoalObj2: {fileID: 1210400747}
   MiddleObj: {fileID: 1619106707}
-  AgentPrefab: {fileID: 6130764935957204772, guid: b2f85fdac3988d945827a50db937ac7e, type: 3}
-  AgentPrefab2: {fileID: 6130764935957204772, guid: f4783c49ad15c3d4a8a7ecc16c413353, type: 3}
-  AgentPrefab3: {fileID: 6130764935957204772, guid: b1b5b9b02af840246ab72ebb4a9aa210, type: 3}
+  StaticPrefab: {fileID: 6130764935957204772, guid: b2f85fdac3988d945827a50db937ac7e, type: 3}
+  MovingPrefab: {fileID: 6130764935957204772, guid: f4783c49ad15c3d4a8a7ecc16c413353, type: 3}
+  StaticPrefab2: {fileID: 6130764935957204772, guid: b1b5b9b02af840246ab72ebb4a9aa210, type: 3}
+  MovingPrebab2: {fileID: 6141102803582335810, guid: bb1a12dd84849ae4cb135e7fc652a194, type: 3}
 --- !u!4 &552512230
 Transform:
   m_ObjectHideFlags: 0
