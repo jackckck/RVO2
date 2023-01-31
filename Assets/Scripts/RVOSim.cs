@@ -6,11 +6,12 @@ using RVO;
 
 public class RVOSim : MonoBehaviour
 {
+    public List<GameObject> Obstacles; //Timo
     public int NrOfMovingAgents;
     public int NrOfMovingAgents2;
     public int NrOfStaticAgents;
     public GameObject GoalObj;
-    public GameObject StartObj;
+    public GameObject StartObj; 
     public GameObject StartObj2;
     public GameObject GoalObj2;
     public GameObject MiddleObj;
@@ -45,6 +46,8 @@ public class RVOSim : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        InitialiseObstacles(); //Timo
+
         System.Random ran = new System.Random();
 
         goal1 = GoalObj.transform.position;
@@ -130,6 +133,23 @@ public class RVOSim : MonoBehaviour
 
         }
     }
+
+    //OPEN Timo
+    void InitialiseObstacles()
+    {
+        foreach (var parentObject in Obstacles) 
+        {
+            var obstacle = new List<RVO.Vector2>();
+            foreach (Transform child in parentObject.transform)
+            {
+                var pos = child.position;
+                obstacle.Add(ToRVO(pos));
+            }
+            Simulator.Instance.addObstacle(obstacle);
+        }
+        Simulator.Instance.processObstacles();
+    }
+    //CLOSE Timo
 
     RVO.Vector2 ToRVO(Vector3 v)
     {
