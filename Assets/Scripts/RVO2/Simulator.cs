@@ -29,7 +29,6 @@
  *
  * <http://gamma.cs.unc.edu/RVO2/>
  */
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -74,6 +73,9 @@ namespace RVO
                 for (int agentNo = start_; agentNo < end_; ++agentNo)
                 {
                     Simulator.Instance.agents_[agentNo].computeNeighbors();
+                    //<Jack>
+                    Simulator.Instance.agents_[agentNo].computeIfStatic();
+                    //</Jack>
                     Simulator.Instance.agents_[agentNo].computeNewVelocity();
                 }
 
@@ -147,6 +149,8 @@ namespace RVO
             agent.velocity_ = defaultAgent_.velocity_;
             agent.priority_ = defaultAgent_.priority_; // Dasja
             agent.goalPosition_ = defaultAgent_.goalPosition_; // Dasja
+            agent.personalSpaceMultiplier_ = defaultAgent_.personalSpaceMultiplier_;
+            agent.lettingThroughMultiplier_ = defaultAgent_.lettingThroughMultiplier_;
             agents_.Add(agent);
 
             return agent.id_;
@@ -186,7 +190,7 @@ namespace RVO
          * <param name="velocity">The initial two-dimensional linear velocity of
          * this agent.</param>
          */
-        public int addAgent(Vector2 position, float neighborDist, int maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, Vector2 velocity, float priority, Vector2 goalPosition) // Dasja
+        public int addAgent(Vector2 position, float neighborDist, int maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, Vector2 velocity, float priority, Vector2 goalPosition, float personalSpaceMultiplier, float lettingThroughMultiplier) // Dasja
         {
             Agent agent = new Agent();
             agent.id_ = agents_.Count;
@@ -200,6 +204,8 @@ namespace RVO
             agent.velocity_ = velocity;
             agent.priority_ = priority; // Dasja
             agent.goalPosition_ = goalPosition; // Dasja
+            agent.personalSpaceMultiplier_ = personalSpaceMultiplier;
+            agent.lettingThroughMultiplier_ = lettingThroughMultiplier;
             agents_.Add(agent);
 
             return agent.id_;
@@ -319,6 +325,13 @@ namespace RVO
 
             return globalTime_;
         }
+
+        //<Jack>
+        public bool isAgentStatic(int agentNo)
+        {
+            return agents_[agentNo].IsStatic();
+        }
+        //</Jack>
 
         /**
          * <summary>Returns the specified agent neighbor of the specified agent.
@@ -689,7 +702,7 @@ namespace RVO
          * <param name="velocity">The default initial two-dimensional linear
          * velocity of a new agent.</param>
          */
-        public void setAgentDefaults(float neighborDist, int maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, Vector2 velocity, float priority, Vector2 goalPosition) // Dasja
+        public void setAgentDefaults(float neighborDist, int maxNeighbors, float timeHorizon, float timeHorizonObst, float radius, float maxSpeed, Vector2 velocity, float priority, Vector2 goalPosition, float personalSpaceMultiplier, float lettingThroughMultiplier) // Dasja
         {
             if (defaultAgent_ == null)
             {
@@ -705,6 +718,8 @@ namespace RVO
             defaultAgent_.velocity_ = velocity;
             defaultAgent_.priority_ = priority; // Dasja
             defaultAgent_.goalPosition_ = goalPosition; // Dasja
+            defaultAgent_.personalSpaceMultiplier_ = personalSpaceMultiplier; // Jack
+            defaultAgent_.lettingThroughMultiplier_ = lettingThroughMultiplier; // Jack
         }
 
         /**
