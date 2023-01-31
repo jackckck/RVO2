@@ -31,6 +31,8 @@ public class RVOSim : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        InitialiseObstacles(); //Timo
+
         System.Random ran = new System.Random();
 
         goal1 = GoalObj.transform.position;
@@ -91,7 +93,6 @@ public class RVOSim : MonoBehaviour
             Simulator.Instance.setTimeStep(0.25f);
             Simulator.Instance.setAgentDefaults(15.0f, 10, 5.0f, 5.0f, 1.0f, 1.0f, new RVO.Vector2(0.0f, 0.0f), priority, goalPosition); // Dasja
 
-            InitialiseObstacles(); //Timo
         }        
 
 
