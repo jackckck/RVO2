@@ -256,8 +256,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NrOfMovingAgents: 50
-  NrOfMovingAgents2: 0
-  NrOfStaticAgents: 50
+  NrOfMovingAgents2: 41
+  NrOfStaticAgents: 200
   GoalObj: {fileID: 1210400747}
   StartObj: {fileID: 1900577803}
   StartObj2: {fileID: 598086445}

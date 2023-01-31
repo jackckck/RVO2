@@ -63,6 +63,7 @@ namespace RVO
         //<Jack>
         // true if and only if the (static) agent is currently trying to let another (dynamic) agent pass
         internal float totalIncidence_ = 0;
+        internal bool multipleAnglesIncident_ = false;
         internal float lettingThroughPropagationRadiusMultiplier_ = 10.0f;
         // a multiplier for what the agent considers their personal space
         internal float personalSpaceMultiplier_ = 1.0f;
@@ -401,6 +402,15 @@ namespace RVO
             Vector2 staticNeighboursMeanVelocity  = new Vector2(0.0f, 0.0f);
             Vector2 dynamicNeighboursMeanVelocity = new Vector2(0.0f, 0.0f);
 
+            bool nwIncident = false;
+            bool neIncident = false;
+            bool seIncident = false;
+            bool swIncident = false;
+            Vector2 wV = new Vector2(-1.0f,  0.0f);
+            Vector2 nV = new Vector2( 0.0f,  1.0f);
+            Vector2 eV = new Vector2( 1.0f,  0.0f);
+            Vector2 sV = new Vector2( 0.0f, -1.0f);
+
             for (int i = 0; i < agentNeighbors_.Count; ++i)
             {
                 Agent other = agentNeighbors_[i].Value;
@@ -449,6 +459,14 @@ namespace RVO
                         else
                         {
                             meanIncidence += incidence * RVOMath.normalize(position_ - other.position_);
+                            // nw
+                            nwIncident = nwIncident || (other.velocity_ * nV > 0 && other.velocity_ * wV > 0); 
+                            // ne
+                            neIncident = neIncident || (other.velocity_ * nV > 0 && other.velocity_ * eV > 0); 
+                            // se
+                            seIncident = seIncident || (other.velocity_ * sV > 0 && other.velocity_ * eV > 0); 
+                            // sw
+                            swIncident = swIncident || (other.velocity_ * sV > 0 && other.velocity_ * wV > 0); 
                         }
                         if (mostIncidentNeighbour == null)
                         {
@@ -463,6 +481,8 @@ namespace RVO
                     }
                 }
             }
+            bool multipleAnglesIncident_ = (nwIncident && seIncident) || (neIncident && swIncident);
+
             staticNeighbourRatio  = ((float) staticNeighbourCount)  / ((float) (agentNeighbors_.Count + 1));
             dynamicNeighbourRatio = ((float) dynamicNeighbourCount) / ((float) (agentNeighbors_.Count + 1));
             closeStaticNeighbourRatio  = ((float) closeStaticNeighbourCount)  / ((float) (agentNeighbors_.Count + 1));
@@ -482,12 +502,22 @@ namespace RVO
                 // true if and only if the angle between (position_ - other.position_) and other.velocity_ is at than 90 degrees
                 bool movingRoughlyTowardsMe = (position_ - other.position_) * other.velocity_ > 0;
 
+                bool movingOppositeDirections = (goalPosition_ - position_) * (other.goalPosition_ - other.position_) < 0;
+
                 float combinedRadius = radius_ + other.radius_;
                 
                 if (isStatic && other.isStatic)
                 {
                     if (totalIncidence_ > 0 || other.totalIncidence_ > 0)
                     {
+                        /*if (multipleAnglesIncident_ || other.multipleAnglesIncident_)
+                        {
+                            combinedRadius *= 1.5f;
+                        }
+                        else
+                        {
+                            combinedRadius *= 1.0f;
+                        }*/
                         combinedRadius *= 1.0f;
                     }
                     else
@@ -511,7 +541,13 @@ namespace RVO
                     }
                     else if (totalIncidence_ > 0 || other.totalIncidence_ > 0)
                     {
-                        combinedRadius *= 1.0f;
+                        if (movingOppositeDirections) {
+                            combinedRadius *= 0.5f;
+                        }
+                        else
+                        {
+                            combinedRadius *= 1.0f;
+                        }
                     }
                     else
                     {
@@ -644,7 +680,7 @@ namespace RVO
                 //     }
 
                 // }
-                
+            
                 orcaLines_.Add(line);
             }
 

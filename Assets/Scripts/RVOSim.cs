@@ -118,7 +118,7 @@ public class RVOSim : MonoBehaviour
             if (i < NrOfMovingAgents)
                 allAgents[i] = GameObject.Instantiate(MovingPrebab2, spawnPos, Quaternion.identity);
             else if (i < NrOfMovingAgents + NrOfMovingAgents2)
-                allAgents[i] = GameObject.Instantiate(MovingPrebab2, spawnPos, Quaternion.identity);
+                allAgents[i] = GameObject.Instantiate(StaticPrefab2, spawnPos, Quaternion.identity);
             else
                 allAgents[i] = GameObject.Instantiate(StaticPrefab, spawnPos, Quaternion.identity);
 
@@ -151,11 +151,11 @@ public class RVOSim : MonoBehaviour
             var goalVel = goalPos - agentPos;
             var absDistToGoal = RVOMath.absSq(goalVel);
 
-            UpdateAgentSkin(i);
+            //UpdateAgentSkin(i);
 
-            /*if (Simulator.Instance.isAgentStatic(i) && absDistToGoal < 10)
+            /*if (Simulator.Instance.isAgentStatic(i) && absDistToGoal < 400)
             {
-                goalVel = new RVO.Vector2(0, 0);
+                goalVel = new RVO.Vector2(0.001f, 0.001f);
             }*/
             if (absDistToGoal > 1) {
                 goalVel = RVOMath.normalize(goalVel);
