@@ -55,19 +55,15 @@ namespace RVO
         internal float radius_ = 0.0f;
         internal float timeHorizon_ = 0.0f;
         internal float timeHorizonObst_ = 0.0f;
-        internal float priority_; // Dasja
-        internal Vector2 goalPosition_; // Dasja
 
         private Vector2 newVelocity_;
 
-        //<Jack>
-        // true if and only if the (static) agent is currently trying to let another (dynamic) agent pass
+        //<CRWS>
+        internal Vector2 goalPosition_;
         internal float totalIncidence_ = 0;
         internal bool multipleAnglesIncident_ = false;
-        internal float lettingThroughPropagationRadiusMultiplier_ = 10.0f;
         // a multiplier for what the agent considers their personal space
         internal float personalSpaceMultiplier_ = 1.0f;
-        internal float lettingThroughMultiplier_ = 1.0f;
         internal bool isStatic;
         internal void computeIfStatic()
         {
@@ -83,15 +79,11 @@ namespace RVO
                 return;
             }
         }
-        internal bool IsStatic()
-        {
-            return isStatic;
-        }
         internal float sqDistFromGoal()
         {
             return RVOMath.absSq(goalPosition_ - position_);
         }
-        //</Jack>
+        //</CRWS>
 
         /**
          * <summary>Computes the neighbors of this agent.</summary>
@@ -378,9 +370,8 @@ namespace RVO
 
             float invTimeHorizon = 1.0f / timeHorizon_;
 
-            //<Jack>
-            Vector2 overridePrefVelocity = prefVelocity_;
-
+            //<CRWS>
+            // parameters for tweaking agent behaviour - currently most of these are unused
             int staticNeighbourCount = 0;
             int dynamicNeighbourCount = 0;
             float staticNeighbourRatio = 0;
@@ -501,7 +492,7 @@ namespace RVO
                 bool inPersonalSpace = distSq <= radius_ * personalSpaceMultiplier_ * 2.0f;
                 // true if and only if the angle between (position_ - other.position_) and other.velocity_ is at than 90 degrees
                 bool movingRoughlyTowardsMe = (position_ - other.position_) * other.velocity_ > 0;
-
+                // true if and only if goal vectors have a greater angle than 90 degrees
                 bool movingOppositeDirections = (goalPosition_ - position_) * (other.goalPosition_ - other.position_) < 0;
 
                 float combinedRadius = radius_ + other.radius_;
@@ -510,14 +501,6 @@ namespace RVO
                 {
                     if (totalIncidence_ > 0 || other.totalIncidence_ > 0)
                     {
-                        /*if (multipleAnglesIncident_ || other.multipleAnglesIncident_)
-                        {
-                            combinedRadius *= 1.5f;
-                        }
-                        else
-                        {
-                            combinedRadius *= 1.0f;
-                        }*/
                         combinedRadius *= 1.0f;
                     }
                     else
@@ -528,15 +511,6 @@ namespace RVO
                 else if (!isStatic && !other.isStatic)
                 {
                     if ((0 < totalIncidence && totalIncidence_ <= 1) || (0 < other.totalIncidence_ && other.totalIncidence_ <= 1)) {
-                        /*Vector2 u = RVOMath.normalize(mostIncidentNeighbour.velocity_);        
-                        Vector2 v = RVOMath.normalize(position_       - mostIncidentNeighbour.position_);
-                        Vector2 w = RVOMath.normalize(other.position_ - mostIncidentNeighbour.position_);
-                        bool otherAcrossFromIncidenceVector = u * v < v * w && u * w < v * w;
-                            
-                        if (otherAcrossFromIncidenceVector)
-                        {
-                            combinedRadius = combinedRadius * lettingThroughMultiplier_ * 1.2f;
-                        }*/
                         totalIncidence_ *= 1.5f;
                     }
                     else if (totalIncidence_ > 0 || other.totalIncidence_ > 0)
@@ -563,30 +537,11 @@ namespace RVO
                 {
                     combinedRadius *= 0.5f;
                 }
-
-                /*if (isStatic && other.isStatic)
-                {
-                    combinedRadius = 1.0f;
-                }
-                else if (isStatic && !other.isStatic)
-                {
-                    combinedRadius *= 0.5f;
-                }
-                else if (!isStatic && other.isStatic)
-                {
-                    combinedRadius *= 0.5f;
-                }
-                else if (!isStatic && !other.isStatic)
-                {
-                    combinedRadius *= 1.0f;
-                }*/
                 
                 combinedRadiuses[i] = combinedRadius;
             }
 
-            float neighbourhoodDensity = (staticNeighbourCount + dynamicNeighbourCount) / neighborDist_; // maybe factor in maximum neighbours variable
-
-            //</Jack>
+            //</CRWS>
 
             /* Create agent ORCA lines. */
             for (int i = 0; i < agentNeighbors_.Count; ++i)
@@ -597,7 +552,9 @@ namespace RVO
                 Vector2 relativeVelocity = velocity_ - other.velocity_;
                 float distSq = RVOMath.absSq(relativePosition);
                 
+                //<CRWS>
                 float combinedRadius = combinedRadiuses[i];                
+                //</CRWS>
 
                 float combinedRadiusSq = RVOMath.sqr(combinedRadius);
 
@@ -661,77 +618,59 @@ namespace RVO
 
                 line.point = velocity_ + 0.5f * u;            
 
-                // // Dasja
-                // // If there is a good leader nearby, follow this leader
+                // <CRWS>
+                // DEPRECATED: Follow the leader
 
                 // // Check if neighboring agent also belongs to high priority group
                 // if (!isStatic & !other.isStatic)
                 // {
                 //     // Check distance from the goal position
-                //     float agentDistFromGoal = computeEuclidianDist(goalPosition_, position_);
-                //     float otherDistFromGoal = computeEuclidianDist(other.goalPosition_, other.position_);
+                //     float agentDistFromGoal = RVOMath.absSq(goalPosition_, position_);
+                //     float otherDistFromGoal = RVOMath.absSq(other.goalPosition_, other.position_);
 
                 //     // If the other agent is closer to the goal position, adjust velocity to follow them
                 //     if (otherDistFromGoal < agentDistFromGoal)
                 //     {
                 //         line.point = (velocity_ + other.velocity_) / 2 + 0.5f * u;
-                //         //velocity_ = (other.velocity + other.velocity_) / 2 + 0.5f & u;
-                //         //velocity_ = other.velocity_;
                 //     }
 
                 // }
+                // </CRWS>
             
                 orcaLines_.Add(line);
             }
 
-            //<Jack>
-            //TODO: threshold voor wegrennen, in acht nemend total incidence en omringheid door
-            staticNeighboursMeanVelocity = RVOMath.absSq(staticNeighboursMeanVelocity)  > 0 ? staticNeighboursMeanVelocity  : RVOMath.normalize(staticNeighboursMeanVelocity);
-            dynamicNeighboursMeanVelocity = RVOMath.absSq(dynamicNeighboursMeanVelocity) > 0 ? dynamicNeighboursMeanVelocity : RVOMath.normalize(dynamicNeighboursMeanVelocity);
-            if (false && isStatic && RVOMath.absSq(dynamicNeighboursMeanVelocity) > 0)
-            {
-                Vector2 meanDynamicNeighbourToAgentNormal = RVOMath.normalize(position_ - dynamicNeighboursMeanPosition);
+            //<CRWS>
+            Vector2 overridePrefVelocity = prefVelocity_;
+            // // behaviour for evading approaching dynamic agents - currently not tuned properly and disruptive to overall functioning 
+            // staticNeighboursMeanVelocity = RVOMath.absSq(staticNeighboursMeanVelocity)  > 0 ? staticNeighboursMeanVelocity  : RVOMath.normalize(staticNeighboursMeanVelocity);
+            // dynamicNeighboursMeanVelocity = RVOMath.absSq(dynamicNeighboursMeanVelocity) > 0 ? dynamicNeighboursMeanVelocity : RVOMath.normalize(dynamicNeighboursMeanVelocity);
+            // if (isStatic && RVOMath.absSq(dynamicNeighboursMeanVelocity) > 0 && closeStaticNeighbourCount < 2)
+            // {
+            //     Vector2 meanDynamicNeighbourToAgentNormal = RVOMath.normalize(position_ - dynamicNeighboursMeanPosition);
 
-                if (meanDynamicNeighbourToAgentNormal * dynamicNeighboursMeanVelocity > 0)
-                {
-                    // orthogonal vector
-                    Vector2 orthog = new Vector2(dynamicNeighboursMeanVelocity.y(), -1f * dynamicNeighboursMeanVelocity.x());
+            //     if (meanDynamicNeighbourToAgentNormal * dynamicNeighboursMeanVelocity > 0)
+            //     {
+            //         // orthogonal vector
+            //         Vector2 orthog = new Vector2(dynamicNeighboursMeanVelocity.y(), -1f * dynamicNeighboursMeanVelocity.x());
 
-                    bool flip = Math.Atan2((double) meanDynamicNeighbourToAgentNormal.y(), (double) meanDynamicNeighbourToAgentNormal.x()) - Math.Atan2((double) dynamicNeighboursMeanVelocity.y(), (double) dynamicNeighboursMeanVelocity.x()) < 0;
-                    if (flip)
-                    {
-                        orthog *= -1f;
-                    }
-                    overridePrefVelocity = orthog;
-                }
-            }
+            //         bool flip = Math.Atan2((double) meanDynamicNeighbourToAgentNormal.y(), (double) meanDynamicNeighbourToAgentNormal.x()) - Math.Atan2((double) dynamicNeighboursMeanVelocity.y(), (double) dynamicNeighboursMeanVelocity.x()) < 0;
+            //         if (flip)
+            //         {
+            //             orthog *= -1f;
+            //         }
+            //         overridePrefVelocity = orthog;
+            //     }
+            // }
             
-            // (prefVelocity_ vervangen met overridePrefVelocity)
             int lineFail = linearProgram2(orcaLines_, maxSpeed_, overridePrefVelocity, false, ref newVelocity_);
-            //</Jack>
+            //</CRWS>
 
             if (lineFail < orcaLines_.Count)
             {
                 linearProgram3(orcaLines_, numObstLines, lineFail, maxSpeed_, ref newVelocity_);
             }
-
-            // TODO
-            if (isStatic)
-            {
-                float sqDistFromGoal = RVOMath.absSq(goalPosition_ - position_);
-                float sluggishness = sqDistFromGoal > 1600 ? 0.4f * (1200 / sqDistFromGoal) : 1.0f;
-                //newVelocity_ *= sluggishness;
-            }
         }
-
-
-        // Function to compute Euclidian distance // Dasja
-        internal float computeEuclidianDist(Vector2 pos1, Vector2 pos2)
-        {
-            double d = Math.Sqrt(Math.Pow(pos1.x_ - pos2.x_, 2) + Math.Pow(pos1.y_ - pos2.y_, 2));
-            return (float)d;
-        }
-
 
         /**
          * <summary>Inserts an agent neighbor into the set of neighbors of this
